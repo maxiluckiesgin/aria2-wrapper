@@ -61,6 +61,21 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+
+        button:disabled {
+            background-color: #d3d3d3;
+            border-color: #a9a9a9;
+            color: #808080;
+            cursor: not-allowed;
+        }
+
+        .stop-button {
+            background-color: #a53e3e;
+        }
+
+        .stop-button:hover {
+            background-color: #7c2e2e;
+        }
     </style>
 </head>
 
@@ -87,6 +102,7 @@
     <!-- Run Button -->
     <div class="form-container">
         <button id="run-button">Run Executable</button>
+        <button id="stop-button" class="stop-button" disabled>Stop</button>
     </div>
 
     <!-- Output Display -->
