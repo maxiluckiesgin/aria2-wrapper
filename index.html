@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Electron App</title>
+    <style>
+        /* Apply grid layout to the body or a specific container */
+        body {
+            font-family: Arial, sans-serif;
+            display: grid;
+            grid-template-columns: 1fr; /* One column */
+            grid-gap: 20px;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Grid layout for the form */
+        .form-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* Labels in one column, inputs in the second */
+            grid-gap: 10px;
+            align-items: center; /* Vertically center items in each grid cell */
+        }
+
+        label {
+            text-align: right;
+            font-weight: bold;
+            display: flex;
+            align-items: center; /* Ensure labels are vertically centered */
+        }
+
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Electron App</h1>
+
+    <!-- Input for Link -->
+    <div class="form-container">
+        <label for="link">Link:</label>
+        <input type="text" id="link" name="link" placeholder="https://www.yourlink.xyz" />
+    </div>
+
+    <!-- Number Inputs with default values and placeholders -->
+    <div class="form-container">
+        <label for="max-conn">Number of connections:</label>
+        <input type="number" id="max-conn" name="max-conn" value="16" />
+    </div>
+
+    <div class="form-container">
+        <label for="max-speed">Max Speed:</label>
+        <input type="text" id="max-speed" name="max-speed" value="1M" />
+    </div>
+
+    <!-- Run Button -->
+    <div class="form-container">
+        <button id="run-button">Run Executable</button>
+    </div>
+
+    <!-- Output Display -->
+    <pre id="output"></pre>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="renderer.js"></script>
+</body>
+
+</html>
