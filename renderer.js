@@ -1,8 +1,16 @@
 // Define the runCommand function
 
-let runningProcess = null; // To store the running process
 const { exec, spawn } = require('child_process');
 const { clipboard } = require('electron');
+
+// Attach event listener to the button in the DOM
+const button = document.getElementById('run-button');
+const link = document.getElementById('link');
+const max_conn = document.getElementById('max-conn');
+const max_speed = document.getElementById('max-speed');
+const download_list = document.getElementById('download-list');
+
+const items = {};
 
 function createProgressBarFromPercentage(percentage, barLength = 40) {
     const filledLength = Math.round((barLength * percentage) / 100); // Calculate the number of filled segments
@@ -15,22 +23,22 @@ function createProgressBarFromPercentage(percentage, barLength = 40) {
     return `${bar} ${percentage.toFixed(2)}%`;
 }
 
-function runCommand(commandArg, fileName, outputElement, onCloseCallback) {
+function runCommand(commandArg, fileName, onCloseCallback) {
 
     // Execute the command
     const command = spawn('aria2c.exe', commandArg.split(' '));
 
+    items[fileName] = {};
+
     // Stream stdout and log the output in real-time
     command.stdout.on('data', (data) => {
-        
-
         const regex = /(\d+(\.\d+)?[KMGT]iB)\/(\d+(\.\d+)?[KMGT]iB)\((\d+)%\)\s+CN:\d+\s+DL:(\d+(\.\d+)?[KMGT]iB)\s+ETA:((\d+h?)?(\d+m?)?(\d+s?))/;
 
         // Matching the text
-        let text_content = `${fileName}\n`;
-        const matches = `${data}`.match(regex);
+        let text_content = "";
+        const matches = RegExp(regex).exec(`${data}`);
 
-        
+
         console.log(`${data}`)
         if (matches) {
             const downloaded = matches[1];
@@ -50,66 +58,81 @@ function runCommand(commandArg, fileName, outputElement, onCloseCallback) {
             text_content += 'Downloading...';
             console.log('No match found');
         }
-        outputElement.textContent = text_content;
+
+        items[fileName]['text'] = text_content;
+        items[fileName]['pid'] = command.pid;
 
         console.log(`PID : ${command.pid}`)
     });
 
     // Stream stderr (for errors)
     command.stderr.on('data', (data) => {
-        outputElement.textContent += `STDERR: ${data}`;
-        stopButton.disabled = true;
+        items[fileName]['text'] = `STDERR: ${data}`;
     });
 
     // When the process ends, log the exit code
     command.on('close', (code) => {
         if (onCloseCallback) onCloseCallback(code);  // Optional callback after process ends
-        runningProcess = null; // Reset running process when done
     });
-
-    stopButton.disabled = false; // Enable stop button when a process is running
-
-    return command;
 }
 
-// Attach event listener to the button in the DOM
-const button = document.getElementById('run-button');
-const stopButton = document.getElementById('stop-button');
-const output = document.getElementById('output');
-const link = document.getElementById('link');
-const max_conn = document.getElementById('max-conn');
-const max_speed = document.getElementById('max-speed');
 
 button.addEventListener('click', () => {
     // Trigger the command with the output element
     const commandArgString = `-s ${max_conn.value} -x ${max_conn.value} --max-download-limit ${max_speed.value} ${link.value}`;
     console.log(`running command : ${commandArgString}`);
     const fileName = link.value.split('/').pop()
-    runningProcess = runCommand(commandArgString, fileName, output, (exitCode) => {
+    runCommand(commandArgString, fileName, (exitCode) => {
         console.log(`Process finished with exit code: ${exitCode}`);
     });
 });
 
-// Stop Command
-stopButton.addEventListener('click', () => {
-    if (runningProcess) {
-        const pid = runningProcess.pid;
+
+function pauseDownload(fileName) {
+    if (items[fileName]) {
+        const pid = items[fileName]['pid'];
         try {
             exec(`taskkill /F /PID ${pid}`, (error, stdout, stderr) => {
+                const lastText = items[fileName]['text'];
                 if (error) {
-                    output.textContent += `\n Error stopping process: ${error.message}\n`;
+                    items[fileName]['text'] = `Error stopping process: ${error.message}\n ${lastText}`;
                 } else {
-                    output.textContent += `\n Download Stopped\n`;
+                    items[fileName]['text'] = `Download Paused\n ${lastText}`;
                 }
             });
         } catch (error) {
-            output.textContent += `\n Error stopping process: ${error.message}\n`;
+            items[fileName]['text'] = `Error stopping process: ${error.message}\n ${lastText}`;
         }
-        stopButton.disabled = true;
-        runningProcess = null;
     }
 
-});
+}
+
+function deleteDownload(fileName) {
+    delete items[fileName];
+}
+
+
+function renderList() {
+    // Clear the current list
+    download_list.innerHTML = "";
+
+    // Check if the list has items
+    if (items.length === 0) {
+        return;
+    }
+
+    for (const [key, value] of Object.entries(items)) {
+        const listItem = document.createElement("li");
+        const processText = value['text'];
+        listItem.innerHTML = `
+            <b>${key}</b>
+            <pre>${processText}</pre>
+            <button id="stop-button" onclick="pauseDownload('${key}')" class="pause-button">Pause</button>
+            <button id="stop-button" onclick="deleteDownload('${key}')" class="delete-button">Delete</button>
+        `;
+        download_list.appendChild(listItem);
+    }
+}
 
 document.getElementById('paste-button').addEventListener('click', () => {
     const clipboardText = clipboard.readText();
@@ -117,3 +140,10 @@ document.getElementById('paste-button').addEventListener('click', () => {
     // Set the pasted content into the textarea
     link.value = clipboardText;
 });
+
+function periodicCheck() {
+    renderList();
+    setTimeout(periodicCheck, 500); // Check again after 500 ms
+}
+
+periodicCheck();
