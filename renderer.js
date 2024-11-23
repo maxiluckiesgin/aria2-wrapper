@@ -4,7 +4,7 @@ let runningProcess = null; // To store the running process
 const { exec, spawn } = require('child_process');
 const { clipboard } = require('electron');
 
-function runCommand(commandArg, outputElement, onCloseCallback) {
+function runCommand(commandArg, fileName, outputElement, onCloseCallback) {
 
     // Execute the command
     const command = spawn('aria2c.exe', commandArg.split(' '));
@@ -13,32 +13,31 @@ function runCommand(commandArg, outputElement, onCloseCallback) {
     command.stdout.on('data', (data) => {
         
 
-        const regex = /(\d+(\.\d+)?[KMGT]iB)\/(\d+(\.\d+)?[KMGT]iB)\((\d+)%\)\s+CN:\d+\s+DL:(\d+[KMGT]iB)\s+ETA:(\d+h?)?(\d+m?)?(\d+s?)/;
+        const regex = /(\d+(\.\d+)?[KMGT]iB)\/(\d+(\.\d+)?[KMGT]iB)\((\d+)%\)\s+CN:\d+\s+DL:(\d+(\.\d+)?[KMGT]iB)\s+ETA:((\d+h?)?(\d+m?)?(\d+s?))/;
 
         // Matching the text
-        let text_content = `${data}\n`;
-        const matches = text_content.match(regex);
+        let text_content = `${fileName}\n`;
+        const matches = `${data}`.match(regex);
 
         
-
+        console.log(`${data}`)
         if (matches) {
-            const downloaded = matches[1]; // 158MiB
-            const file_size = matches[3]; // 1.0GiB
-            const percentage = matches[5]; // 15%
-            const dn_speed = matches[6]; // 86KiB
-            const remaining = matches[7]; // 2h51m37s
+            const downloaded = matches[1];
+            const file_size = matches[3];
+            const percentage = matches[5];
+            const dn_speed = matches[6];
+            const remaining = matches[8];
 
             text_content += `Downloaded: ${downloaded}\n`;
             text_content += `File Size: ${file_size}\n`;
             text_content += `Percentage: ${percentage}%\n`;
             text_content += `Download Speed: ${dn_speed}\n`;
             text_content += `Remaining Time: ${remaining}\n`;
-
-            outputElement.textContent = text_content;
         } else {
-            console.log(`${data}`)
+            text_content += 'Downloading...';
             console.log('No match found');
         }
+        outputElement.textContent = text_content;
 
         console.log(`PID : ${command.pid}`)
     });
@@ -72,7 +71,8 @@ button.addEventListener('click', () => {
     // Trigger the command with the output element
     const commandArgString = `-s ${max_conn.value} -x ${max_conn.value} --max-download-limit ${max_speed.value} ${link.value}`;
     console.log(`running command : ${commandArgString}`);
-    runningProcess = runCommand(commandArgString, output, (exitCode) => {
+    const fileName = link.value.split('/').pop()
+    runningProcess = runCommand(commandArgString, fileName, output, (exitCode) => {
         console.log(`Process finished with exit code: ${exitCode}`);
     });
 });
