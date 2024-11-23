@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aria2 GUI</title>
+    <!-- Link to Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
         /* Apply grid layout to the body or a specific container */
         body {
@@ -76,6 +78,39 @@
         .stop-button:hover {
             background-color: #7c2e2e;
         }
+
+        /* Styling for the input + button wrapper */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center; /* Vertically centers the input and button */
+            width: 100%;
+        }
+
+        input {
+            flex-grow: 1;
+            border-radius: 5px;
+            padding-right: 40px; /* Add space for the button */
+        }
+
+        button#paste-button {
+            position: absolute;
+            right: 0;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 18px;
+            background-color: #008CBA;
+            display: flex;
+            margin: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Compact styling for the Paste button */
+        button#paste-button i {
+            font-size: 16px;
+        }
+
     </style>
 </head>
 
@@ -85,7 +120,12 @@
     <!-- Input for Link -->
     <div class="form-container">
         <label for="link">Link:</label>
-        <input type="text" id="link" name="link" placeholder="https://www.yourlink.xyz" />
+        <div class="input-wrapper">
+            <input type="text" id="link" name="link" placeholder="https://www.yourlink.xyz" />
+            <button id="paste-button">
+                <i class="fas fa-paste"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Number Inputs with default values and placeholders -->

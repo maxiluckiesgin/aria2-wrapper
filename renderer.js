@@ -2,6 +2,7 @@
 
 let runningProcess = null; // To store the running process
 const { exec, spawn } = require('child_process');
+const { clipboard } = require('electron');
 
 function runCommand(commandArg, outputElement, onCloseCallback) {
 
@@ -68,4 +69,11 @@ stopButton.addEventListener('click', () => {
         runningProcess = null;
     }
     
+});
+
+document.getElementById('paste-button').addEventListener('click', () => {
+    const clipboardText = clipboard.readText();
+
+    // Set the pasted content into the textarea
+    link.value = clipboardText;
 });
