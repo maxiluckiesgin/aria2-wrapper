@@ -7,11 +7,38 @@ const { clipboard } = require('electron');
 function runCommand(commandArg, outputElement, onCloseCallback) {
 
     // Execute the command
-    const command = spawn('aria2c.exe',commandArg.split(' '));
+    const command = spawn('aria2c.exe', commandArg.split(' '));
 
     // Stream stdout and log the output in real-time
     command.stdout.on('data', (data) => {
-        outputElement.textContent += `${data}`;
+        
+
+        const regex = /(\d+(\.\d+)?[KMGT]iB)\/(\d+(\.\d+)?[KMGT]iB)\((\d+)%\)\s+CN:\d+\s+DL:(\d+[KMGT]iB)\s+ETA:(\d+h?)?(\d+m?)?(\d+s?)/;
+
+        // Matching the text
+        let text_content = `${data}\n`;
+        const matches = text_content.match(regex);
+
+        
+
+        if (matches) {
+            const downloaded = matches[1]; // 158MiB
+            const file_size = matches[3]; // 1.0GiB
+            const percentage = matches[5]; // 15%
+            const dn_speed = matches[6]; // 86KiB
+            const remaining = matches[7]; // 2h51m37s
+
+            text_content += `Downloaded: ${downloaded}\n`;
+            text_content += `File Size: ${file_size}\n`;
+            text_content += `Percentage: ${percentage}%\n`;
+            text_content += `Download Speed: ${dn_speed}\n`;
+            text_content += `Remaining Time: ${remaining}\n`;
+
+            outputElement.textContent = text_content;
+        } else {
+            console.log(`${data}`)
+            console.log('No match found');
+        }
 
         console.log(`PID : ${command.pid}`)
     });
@@ -68,7 +95,7 @@ stopButton.addEventListener('click', () => {
         stopButton.disabled = true;
         runningProcess = null;
     }
-    
+
 });
 
 document.getElementById('paste-button').addEventListener('click', () => {
