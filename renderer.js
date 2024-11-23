@@ -4,6 +4,17 @@ let runningProcess = null; // To store the running process
 const { exec, spawn } = require('child_process');
 const { clipboard } = require('electron');
 
+function createProgressBarFromPercentage(percentage, barLength = 40) {
+    const filledLength = Math.round((barLength * percentage) / 100); // Calculate the number of filled segments
+    const emptyLength = barLength - filledLength; // Calculate empty segments
+
+    // Create the bar
+    const bar = `[${'█'.repeat(filledLength)}${' '.repeat(emptyLength)}]`;
+
+    // Return progress bar with percentage
+    return `${bar} ${percentage.toFixed(2)}%`;
+}
+
 function runCommand(commandArg, fileName, outputElement, onCloseCallback) {
 
     // Execute the command
@@ -28,9 +39,11 @@ function runCommand(commandArg, fileName, outputElement, onCloseCallback) {
             const dn_speed = matches[6];
             const remaining = matches[8];
 
+            text_content += `${createProgressBarFromPercentage(parseFloat(percentage))}\n`;
+
             text_content += `Downloaded: ${downloaded}\n`;
             text_content += `File Size: ${file_size}\n`;
-            text_content += `Percentage: ${percentage}%\n`;
+            // text_content += `Percentage: ${percentage}%\n`;
             text_content += `Download Speed: ${dn_speed}\n`;
             text_content += `Remaining Time: ${remaining}\n`;
         } else {
